@@ -1,5 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:difficultmap/detail1to20viewidpage.dart';
+import 'package:difficultmap/main.dart';
+import 'package:difficultmap/twentyto40datapage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
@@ -11,7 +15,10 @@ class first20idpg extends StatefulWidget {
 
 class _first20idpgState extends State<first20idpg> {
   bool loadstatus = false;
-  List<Idviewlist> viewfirst20idlist = [];
+
+  // List<Idviewlist> viewfirst20idlist = [];
+  var resultdata;
+  Idviewlist? allID;
 
   @override
   void initState() {
@@ -27,15 +34,11 @@ class _first20idpgState extends State<first20idpg> {
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
 
-    List resultdata = jsonDecode(response.body);
-
-    for (int i = 0; i < resultdata.length; i++) {
-      Idviewlist pqrs = Idviewlist.fromJson(resultdata[i]);
-      setState(() {
-        viewfirst20idlist.add(pqrs);
-        loadstatus = true;
-      });
-    }
+    resultdata = jsonDecode(response.body);
+    setState(() {
+      allID = Idviewlist.fromJson(resultdata);
+      loadstatus = true;
+    });
   }
 
   @override
@@ -53,25 +56,97 @@ class _first20idpgState extends State<first20idpg> {
               title: Text("Result"),
               centerTitle: true,
             ),
-            body: ListView.builder(
-              itemCount: viewfirst20idlist.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  child: Column(
-                    children: [
-                      Text(
-                          "data==${viewfirst20idlist[index].results![index].id}")
-                    ],
-                  ),
-                );
+            body: WillPopScope(
+              onWillPop: mainbackpg,
+              child: ListView.builder(
+                itemCount: allID!.results!.length,
+                itemBuilder: (context, index) {
+                  return InkWell(
+                    onTap: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (context) {
+                          return fisrt20detailview(allID!.results, index);
+                        },
+                      ));
+                    },
+                    child: Container(
+                      margin: EdgeInsets.all(thebody_height * 0.01),
+                      decoration: BoxDecoration(
+                          color: Color(0xFFE5C8C8),
+                          border: Border.all(width: 1),
+                          borderRadius: BorderRadius.horizontal(
+                              left: Radius.circular(10))),
+                      height: thebody_height * 0.2,
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(thebody_height * 0.01),
+                                height: thebody_height * 0.15,
+                                width: thewidth * 0.3,
+                                child: Image.network(
+                                  "${allID!.results![index].image}",
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(
+                                    left: thebody_height * 0.02),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "ID : ${allID!.results![index].id}",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                        "Name : ${allID!.results![index].name}"),
+                                    Text(
+                                        "Status : ${allID!.results![index].status}"),
+                                    Text(
+                                        "Species : ${allID!.results![index].species}")
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            floatingActionButton: FloatingActionButton.extended(
+              label: Text("Next"),
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              onPressed: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(
+                  builder: (context) {
+                    return twenty21to4opg();
+                  },
+                ));
               },
-            ))
+            ),
+          )
         : Center(
-            child: SpinKitChasingDots(
-              color: Colors.black,
-              size: 50,
+            child: SpinKitThreeBounce(
+              color: Colors.white,
             ),
           );
+  }
+
+  Future<bool> mainbackpg() {
+    Navigator.pushReplacement(context, MaterialPageRoute(
+      builder: (context) {
+        return homepage();
+      },
+    ));
+    return Future.value(true);
   }
 }
 

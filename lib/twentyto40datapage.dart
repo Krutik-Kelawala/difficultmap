@@ -1,45 +1,38 @@
 import 'dart:convert';
 
 import 'package:difficultmap/first20idpage.dart';
+import 'package:difficultmap/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 
-void main() {
-  runApp(MaterialApp(
-    theme: ThemeData(scaffoldBackgroundColor: Color(0xFFD9D1CE)),
-    home: homepage(),
-  ));
-}
-
-class homepage extends StatefulWidget {
+class twenty21to4opg extends StatefulWidget {
   @override
-  _homepageState createState() => _homepageState();
+  _twenty21to4opgState createState() => _twenty21to4opgState();
 }
 
-class _homepageState extends State<homepage> {
-  myfirstinfodata? infodataview;
-  bool loading_status = false;
+class _twenty21to4opgState extends State<twenty21to4opg> {
+  bool loadding = false;
+  var pagedataaa;
+  nextpgdata? showdata;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    getfirstpagedata();
+    get21todataa();
   }
 
-  getfirstpagedata() async {
-    var url = Uri.parse('https://rickandmortyapi.com/api/character');
+  get21todataa() async {
+    var url = Uri.parse('https://rickandmortyapi.com/api/character?page=2');
     var response = await http.get(url);
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
 
-    var firstpageviewdata = jsonDecode(response.body);
-
+    pagedataaa = jsonDecode(response.body);
     setState(() {
-      infodataview = myfirstinfodata.fromJson(firstpageviewdata);
-      loading_status = true;
+      showdata = nextpgdata.fromJson(pagedataaa);
+      loadding = true;
     });
   }
 
@@ -52,87 +45,101 @@ class _homepageState extends State<homepage> {
     double theappbar = kToolbarHeight;
     double thebody_height =
         theheight - thestatusbar - theappbar - thenavigatorbar;
-
-    return loading_status
+    return loadding
         ? Scaffold(
             appBar: AppBar(
-              title: Text("Homepage"),
+              title: Text("Result"),
               centerTitle: true,
             ),
-            body: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: thebody_height * 0.5,
-                    width: double.infinity,
-                    margin: EdgeInsets.all(10),
+            body: WillPopScope(
+              onWillPop: firstmaininfopage,
+              child: ListView.builder(
+                itemCount: showdata!.results!.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: EdgeInsets.all(thebody_height * 0.01),
                     decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.greenAccent,
-                              offset: Offset(3, 4),
-                              blurRadius: 5,
-                              blurStyle: BlurStyle.inner,
-                              spreadRadius: 2)
-                        ],
-                        borderRadius: BorderRadius.circular(20),
+                        color: Color(0xFFE5C8C8),
                         border: Border.all(width: 1),
-                        gradient: LinearGradient(colors: [
-                          Colors.orangeAccent,
-                          Colors.yellowAccent
-                        ])),
+                        borderRadius:
+                            BorderRadius.horizontal(left: Radius.circular(10))),
+                    height: thebody_height * 0.2,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          "Rick & Mortry'S Api",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: thebody_height * 0.05),
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(thebody_height * 0.01),
+                              height: thebody_height * 0.15,
+                              width: thewidth * 0.3,
+                              child: Image.network(
+                                "${showdata!.results![index].image}",
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Container(
+                              padding:
+                                  EdgeInsets.only(left: thebody_height * 0.02),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "ID : ${showdata!.results![index].id}",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                      "Name : ${showdata!.results![index].name}"),
+                                  Text(
+                                      "Status : ${showdata!.results![index].status}"),
+                                  Text(
+                                      "Species : ${showdata!.results![index].species}")
+                                ],
+                              ),
+                            )
+                          ],
                         ),
-                        SizedBox(
-                          height: thebody_height * 0.02,
-                        ),
-                        Text(
-                          "Count : ${infodataview!.info!.count}",
-                          style: TextStyle(fontSize: thebody_height * 0.05),
-                        ),
-                        SizedBox(
-                          height: thebody_height * 0.03,
-                        ),
-                        Divider(
-                          height: 5,
-                          thickness: 3,
-                          endIndent: 30,
-                          indent: 30,
-                        ),
-                        SizedBox(
-                          height: thebody_height * 0.03,
-                        ),
-                        Text(
-                          "Pages : ${infodataview!.info!.pages}",
-                          style: TextStyle(fontSize: thebody_height * 0.05),
-                        )
                       ],
                     ),
-                  ),
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(context, MaterialPageRoute(
-                          builder: (context) {
-                            return first20idpg();
-                          },
-                        ));
-                      },
-                      style: ElevatedButton.styleFrom(
-                          elevation: 5,
-                          shadowColor: Colors.blueAccent,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10))),
-                      child: Text("Let's Start")),
-                ],
+                  );
+                },
               ),
+            ),
+            floatingActionButton: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FloatingActionButton.extended(
+                  tooltip: "Previous page",
+                  label: Text("Prev"),
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  onPressed: () {
+                    Navigator.pushReplacement(context, MaterialPageRoute(
+                      builder: (context) {
+                        return first20idpg();
+                      },
+                    ));
+                  },
+                ),
+                SizedBox(
+                  width: thewidth * 0.4,
+                ),
+                FloatingActionButton.extended(
+                  label: Text("Next"),
+                  tooltip: "Next Page",
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  onPressed: () {
+                    Navigator.pushReplacement(context, MaterialPageRoute(
+                      builder: (context) {
+                        return twenty21to4opg();
+                      },
+                    ));
+                  },
+                ),
+              ],
             ),
           )
         : Center(
@@ -141,15 +148,24 @@ class _homepageState extends State<homepage> {
             ),
           );
   }
+
+  Future<bool> firstmaininfopage() {
+    Navigator.pushReplacement(context, MaterialPageRoute(
+      builder: (context) {
+        return homepage();
+      },
+    ));
+    return Future.value(true);
+  }
 }
 
-class myfirstinfodata {
+class nextpgdata {
   Info? info;
   List<Results>? results;
 
-  myfirstinfodata({this.info, this.results});
+  nextpgdata({this.info, this.results});
 
-  myfirstinfodata.fromJson(Map<String, dynamic> json) {
+  nextpgdata.fromJson(Map<String, dynamic> json) {
     info = json['info'] != null ? new Info.fromJson(json['info']) : null;
     if (json['results'] != null) {
       results = <Results>[];
@@ -175,7 +191,7 @@ class Info {
   int? count;
   int? pages;
   String? next;
-  Null? prev;
+  String? prev;
 
   Info({this.count, this.pages, this.next, this.prev});
 
